@@ -1,0 +1,37 @@
+replicaCount: 2
+
+image:
+  repository: 631957124712.dkr.ecr.us-east-1.amazonaws.com/reliability-platform/node-api
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 3000
+
+# Ported from V5's platform-config ConfigMap. FLASK_BASE_URL targets the
+# Helm-generated flask-api Service name (<release>-flask-api); the deploy script
+# installs flask-api with release name "flask-api" → "flask-api-flask-api".
+env:
+  FLASK_BASE_URL: "http://flask-api-flask-api:5000"
+  NODE_ENV: "production"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    failureThreshold: 3
